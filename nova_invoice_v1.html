@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOVA | الفواتير وعروض الأسعار</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- ============ الدرس 1: CSS = شكل الصفحة ============
+     بنعرّف الألوان في متغيرات (--) مرة واحدة ونستخدمها في كل مكان.
+     لو عايز تغيّر لون الموقع كله، بتغيّر سطر واحد بس. -->
+<style>
+  :root {
+    --main: #163b65;      /* اللون الأساسي: أزرق احترافي */
+    --bg: #eef2f7;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --line: #dbe3ec;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Cairo', sans-serif;
+    background: var(--bg); color: var(--text);
+  }
+  header { background: linear-gradient(120deg, #102b49, #1d4f7a); color: #fff; padding: 16px 22px; font-weight: 700; font-size: 20px; box-shadow: 0 4px 14px rgba(16,43,73,.16); }
+  .brand-header { display:flex; align-items:center; gap:12px; }
+  .brand-mark { width:44px; height:44px; display:grid; place-items:center; border:2px solid rgba(255,255,255,.65); border-radius:12px; font-size:25px; font-weight:700; background:rgba(255,255,255,.12); }
+  .brand-copy { display:flex; flex-direction:column; line-height:1.3; }
+  .brand-name { letter-spacing:1px; font-size:20px; }
+  .brand-name span { font-size:10px; letter-spacing:2px; opacity:.8; margin-right:4px; }
+  .brand-subtitle { font-size:12px; opacity:.85; font-weight:400; }
+
+  /* Grid: عمودين على الشاشة الكبيرة (فورم + معاينة)، وعمود واحد على الموبايل */
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; max-width: 1200px; margin: auto; }
+  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card); border-radius: 16px; padding: 18px; box-shadow: 0 8px 24px rgba(16,43,73,.06); border:1px solid #e5ebf2; }
+  h2 { margin: 0 0 12px; font-size: 16px; color: var(--main); }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 8px 0 4px; }
+  input, select {
+    width: 100%; padding: 9px 10px; border: 1px solid var(--line);
+    border-radius: 8px; font: inherit; background: #fff;
+  }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* صفوف البنود */
+  .item { display: grid; grid-template-columns: 3fr 1fr 1.4fr auto; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .item button { background: #fee2e2; color: #b91c1c; border: 0; border-radius: 8px; padding: 9px 11px; cursor: pointer; }
+  .btn { background: var(--main); color: #fff; border: 0; border-radius: 8px; padding: 10px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn.light { background: #e6f4f2; color: var(--main); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+  /* ورقة الفاتورة (المعاينة) */
+  .paper { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; min-height: 420px; box-shadow: inset 0 0 0 4px #f8fafc; }
+  .paper h1 { margin: 0; color: var(--main); font-size: 26px; }
+  .meta { display: flex; justify-content: space-between; gap: 12px; margin: 14px 0; font-size: 14px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+  th { background: var(--main); color: #fff; padding: 8px; text-align: right; }
+  td { padding: 8px; border-bottom: 1px solid var(--line); }
+  .num { direction: ltr; unicode-bidi: isolate; text-align: left; white-space: nowrap; }
+  .totals { margin-top: 14px; margin-right: auto; width: 100%; max-width: 340px; font-size: 14px; }
+  .totals div { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 5px 0; }
+  .totals .grand { font-weight: 700; font-size: 18px; color: var(--main); border-top: 2px solid var(--main); margin-top: 6px; padding-top: 8px; }
+  .note { margin-top: 18px; font-size: 13px; color: var(--muted); white-space: pre-wrap; }
+  .toast { color: var(--main); font-size: 13px; margin-top: 8px; min-height: 18px; }
+
+  .site-footer {
+    text-align: center;
+    padding: 25px 15px;
+    margin-top: 25px;
+    border-top: 2px solid #1d4e89;
+    direction: rtl;
+    color: #64748b;
+    font-family: Arial, sans-serif;
+  }
+
+  @media print {
+    body {
+      background: #fff !important;
+    }
+    header,
+    .form-card,
+    .preview-heading,
+    button,
+    input,
+    select,
+    textarea,
+    footer,
+    .toast {
+      display: none !important;
+    }
+    .layout {
+      display: block !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+    }
+    .preview-card {
+      border: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+    }
+    .paper {
+      border: 0 !important;
+      padding: 0 !important;
+      min-height: auto !important;
+    }
+    * {
+      box-shadow: none !important;
+    }
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="brand-header">
+  <div class="brand-mark">N</div>
+  <div class="brand-copy">
+    <div class="brand-name">برنامج الحوشى للفواتير </div>
+    <div class="brand-subtitle">الفواتير وعروض الأسعار</div>
+  </div>
+</header>
+
+<!-- ============ الدرس 2: HTML = هيكل الصفحة ============
+     كل عنصر هنا (input, select, button) ليه id عشان الـ JavaScript يقدر "يمسكه". -->
+<div class="layout">
+
+  <!-- ===== العمود الأول: الفورم ===== -->
+  <div class="card form-card">
+    <h2>بيانات المستند</h2>
+    <div class="row">
+      <div>
+        <label>نوع المستند</label>
+        <select id="docType">
+          <option>فاتورة</option>
+          <option>عرض سعر</option>
+        </select>
+      </div>
+      <div>
+        <label>رقم المستند</label>
+        <input id="docNo" value="001">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>التاريخ</label>
+        <input id="docDate" type="date">
+      </div>
+      <div>
+        <label>العملة</label>
+        <select id="currency">
+          <option>جنيه</option>
+          <option>ريال</option>
+          <option>درهم</option>
+          <option>دينار</option>
+          <option>دولار</option>
+        </select>
+      </div>
+    </div>
+
+    <label>اسم نشاطك / شركتك</label>
+    <input id="seller" placeholder="مثال: مؤسسة النور للمقاولات">
+    <label>اسم العميل</label>
+    <input id="client" placeholder="مثال: أ. محمد أحمد">
+
+    <h2 style="margin-top:18px">البنود</h2>
+    <div id="itemsBox"></div>
+    <button class="btn light" id="addItem">+ إضافة بند</button>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label>خصم %</label>
+        <input id="discount" type="number" min="0" max="100" value="0">
+      </div>
+      <div>
+        <label>ضريبة %</label>
+        <input id="tax" type="number" min="0" max="100" value="0">
+      </div>
+    </div>
+
+    <label>ملاحظات / شروط الدفع</label>
+    <input id="notes" placeholder="مثال: الدفع خلال 7 أيام من تاريخ الفاتورة">
+
+    <div class="actions">
+      <button class="btn" id="printBtn">طباعة / حفظ PDF</button>
+      <button class="btn light" id="copyBtn">نسخ كنص (للواتساب)</button>
+      <button class="btn light" id="resetBtn">مستند جديد</button>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <!-- ===== العمود التاني: المعاينة ===== -->
+  <div class="card preview-card">
+    <h2 class="preview-heading">المعاينة</h2>
+    <div class="paper" id="paper"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <p style="margin:8px 0;">
+    تم تصميم وتطوير البرنامج بواسطة
+  </p>
+
+  <p style="
+      margin:8px 0;
+      color:#1d4e89;
+      font-weight:bold;
+      font-size:17px;
+  ">
+    Mahmoud Elhoshy
+  </p>
+
+  <p style="margin:15px 0 5px;">
+    للتواصل واتساب
+  </p>
+
+  <a href="https://wa.me/201002739209"
+     target="_blank"
+     style="
+         color:#1d4e89;
+         font-weight:bold;
+         text-decoration:none;
+         font-size:17px;
+     ">
+     01002739209
+  </a>
+</footer>
+
+<script>
+/* ============ الدرس 3: JavaScript = العقل ============
+   الفكرة الأساسية في أي أداة زي دي:
+   1) "الحالة" (state): كل البيانات في مكان واحد (object)
+   2) دالة render(): بتاخد الحالة وترسم الشاشة
+   3) أي تغيير من المستخدم → نحدّث الحالة → نستدعي render() من تاني
+   الطريقة دي بتخلي الكود منظم ومفيهوش لخبطة. */
+
+// ---- 1) الحالة ----
+const defaultState = () => ({
+  docType: 'فاتورة', docNo: '001',
+  docDate: new Date().toISOString().slice(0, 10),
+  currency: 'جنيه', seller: '', client: '',
+  discount: 0, tax: 0, notes: '',
+  items: [{ name: '', qty: 1, price: 0 }]
+});
+let state = defaultState();
+
+// ---- 2) الحفظ في المتصفح (localStorage) ----
+// بنلفّه في try/catch لأن التخزين ممكن يكون مقفول في بعض الأماكن
+function save() { try { localStorage.setItem('invoice-v1', JSON.stringify(state)); } catch (e) {} }
+function load() {
+  try {
+    const s = localStorage.getItem('invoice-v1');
+    if (s) state = Object.assign(defaultState(), JSON.parse(s));
+  } catch (e) {}
+}
+
+// ---- 3) الحسابات (قلب الأداة) ----
+const nonNeg = v => Math.max(0, +v || 0);
+function calc() {
+  const subtotal = state.items.reduce((sum, it) => sum + nonNeg(it.qty) * nonNeg(it.price), 0);
+  const discRate = Math.min(100, nonNeg(state.discount));
+  const taxRate = Math.min(100, nonNeg(state.tax));
+  const discountAmt = subtotal * discRate / 100;
+  const afterDiscount = subtotal - discountAmt;       // الضريبة بتتحسب بعد الخصم
+  const taxAmt = afterDiscount * taxRate / 100;
+  return { subtotal, discountAmt, taxAmt, total: afterDiscount + taxAmt };
+}
+const fmt = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// ---- 4) رسم صفوف البنود في الفورم ----
+function renderItems() {
+  const box = document.getElementById('itemsBox');
+  box.innerHTML = '';
+  state.items.forEach((it, i) => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = `
+      <input placeholder="اسم البند" value="${esc(it.name)}" data-i="${i}" data-f="name">
+      <input type="number" min="0" placeholder="كمية" value="${esc(it.qty)}" data-i="${i}" data-f="qty">
+      <input type="number" min="0" placeholder="السعر" value="${esc(it.price)}" data-i="${i}" data-f="price">
+      <button data-del="${i}" title="حذف">✕</button>`;
+    box.appendChild(row);
+  });
+}
+// esc: حماية بسيطة عشان أي نص يتكتب ما يكسرش الصفحة (مهم في الأمان)
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ---- 5) رسم المعاينة ----
+function renderPaper() {
+  const t = calc(), cur = state.currency;
+  const rows = state.items.map((it, i) => `
+    <tr>
+      <td class="num">${i + 1}</td>
+      <td>${esc(it.name) || '—'}</td>
+      <td class="num">${nonNeg(it.qty)}</td>
+      <td class="num">${fmt(nonNeg(it.price))}</td>
+      <td class="num">${fmt(nonNeg(it.qty) * nonNeg(it.price))}</td>
+    </tr>`).join('');
+  document.getElementById('paper').innerHTML = `
+    <h1>${esc(state.docType)}</h1>
+    <div class="meta">
+      <div>رقم: <span class="num">${esc(state.docNo)}</span><br>التاريخ: <span class="num">${esc(state.docDate)}</span></div>
+      <div style="text-align:left">من: <b>${esc(state.seller) || '—'}</b><br>إلى: <b>${esc(state.client) || '—'}</b></div>
+    </div>
+    <table>
+      <tr><th>#</th><th>البند</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+      ${rows}
+    </table>
+    <div class="totals">
+      <div><span>المجموع</span><span class="num">${fmt(t.subtotal)} ${esc(cur)}</span></div>
+      ${t.discountAmt ? `<div><span>الخصم (${nonNeg(state.discount)}%)</span><span class="num">- ${fmt(t.discountAmt)} ${esc(cur)}</span></div>` : ''}
+      ${t.taxAmt ? `<div><span>الضريبة (${nonNeg(state.tax)}%)</span><span class="num">${fmt(t.taxAmt)} ${esc(cur)}</span></div>` : ''}
+      <div class="grand"><span>الإجمالي</span><span class="num">${fmt(t.total)} ${esc(cur)}</span></div>
+    </div>
+    ${state.notes ? `<div class="note">${esc(state.notes)}</div>` : ''}`;
+}
+
+// ---- 6) الدالة الرئيسية: أي تغيير يعدّي من هنا ----
+function render(withItems = false) {
+  if (withItems) renderItems();
+  renderPaper();
+  save();
+}
+
+// ---- 7) ربط الحقول بالحالة ----
+const simpleFields = ['docType','docNo','docDate','currency','seller','client','discount','tax','notes'];
+function fillForm() {
+  simpleFields.forEach(id => document.getElementById(id).value = state[id]);
+}
+simpleFields.forEach(id => {
+  document.getElementById(id).addEventListener('input', e => { state[id] = e.target.value; render(); });
+});
+
+// أحداث البنود (event delegation: مستمع واحد على الصندوق كله)
+document.getElementById('itemsBox').addEventListener('input', e => {
+  const { i, f } = e.target.dataset;
+  if (i === undefined) return;
+  state.items[i][f] = e.target.value;
+  render();
+});
+document.getElementById('itemsBox').addEventListener('click', e => {
+  const del = e.target.dataset.del;
+  if (del === undefined) return;
+  state.items.splice(del, 1);
+  if (!state.items.length) state.items.push({ name: '', qty: 1, price: 0 });
+  render(true);
+});
+document.getElementById('addItem').onclick = () => {
+  state.items.push({ name: '', qty: 1, price: 0 });
+  render(true);
+};
+
+// ---- 8) الطباعة ونسخ كنص جاهز للواتساب ----
+document.getElementById('printBtn').onclick = () => window.print();
+
+function toText() {
+  const t = calc(), cur = state.currency;
+  const lines = [
+    `*${state.docType} رقم ${state.docNo}*`,
+    `التاريخ: ${state.docDate}`,
+    `من: ${state.seller}`, `إلى: ${state.client}`, '',
+    ...state.items.map((it, i) => `${i + 1}) ${it.name} — ${nonNeg(it.qty)} × ${fmt(nonNeg(it.price))} = ${fmt(nonNeg(it.qty) * nonNeg(it.price))} ${cur}`),
+    '', `المجموع: ${fmt(t.subtotal)} ${cur}`,
+  ];
+  if (t.discountAmt) lines.push(`الخصم: -${fmt(t.discountAmt)} ${cur}`);
+  if (t.taxAmt) lines.push(`الضريبة: ${fmt(t.taxAmt)} ${cur}`);
+  lines.push(`*الإجمالي: ${fmt(t.total)} ${cur}*`);
+  if (state.notes) lines.push('', state.notes);
+  return lines.join('\n');
+}
+function toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; setTimeout(() => el.textContent = '', 3000); }
+document.getElementById('copyBtn').onclick = async () => {
+  try { await navigator.clipboard.writeText(toText()); toast('✅ اتنسخ! الصقه في الواتساب'); }
+  catch (e) { toast('تعذّر النسخ تلقائياً، حدّد النص يدوياً'); }
+};
+document.getElementById('resetBtn').onclick = () => {
+  const keep = { seller: state.seller, currency: state.currency };  // بنحتفظ ببيانات نشاطك
+  state = Object.assign(defaultState(), keep);
+  state.docNo = String((parseInt(document.getElementById('docNo').value) || 0) + 1).padStart(3, '0');
+  fillForm(); render(true);
+};
+
+// ---- 9) التشغيل ----
+load(); fillForm(); render(true);
+</script>
+</body>
+</html>
